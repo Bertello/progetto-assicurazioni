@@ -1,0 +1,12 @@
+[
+	{
+	  "username": "pippo@gmail.com",
+	  "oldPass": "pippo",
+	  "password": "pippo"
+	},
+	{
+	  "username": "pluto@gmail.com",
+	  "oldPass": "pluto",
+	  "password": "pluto" 
+	}
+]

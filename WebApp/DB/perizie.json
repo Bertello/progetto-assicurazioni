@@ -1,0 +1,31 @@
+ [
+      {
+        "codperizie": 1,
+		"codoperatore":2,
+		"dataperizia": "01/02/2024",
+		"oraperizia": "15:45",
+		"coordinate": "",
+		"descrizione": "Descrizione perizia 1",
+		"immagini": [
+						{
+							"img": "img1.jpg",
+							"commento": ""
+						}
+		]
+      },
+      {
+        "codperizie": 2,
+		"codoperatore":1,
+		"dataperizia": "28/02/2024",
+		"oraperizia": "10:00",
+		"coordinate": "",
+		"descrizione": "Descrizione perizia 2",
+		"immagini": [
+						{
+							"img": "img1.jpg",
+							"commento": "commento perizia 2"
+						}
+	  ]
+      }
+]
+
