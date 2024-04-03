@@ -1,0 +1,32 @@
+#mapContainer{
+	width:800px;
+	height:600px;
+	margin:10px auto;		
+}
+
+
+#infoWindow { padding:0; text-align:left; }
+#infoWindow p { padding:0; margin:0}
+#infoWindow p:last-of-type {margin-bottom:10px }
+
+.modal-content {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	z-index: 9999;
+  }
+
+  .close-button {
+	position: absolute;
+	top: 10px;
+	right: 20px;
+  }
+
+  .msg{
+	width:340px;
+	margin:10px;	
+	float:right;
+}		
+
