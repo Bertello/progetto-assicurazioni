@@ -107,7 +107,7 @@ app.post("/api/login", async (req, res, next) => {
     await client.connect();
     const collection = client.db(DBNAME).collection("utenti");
     let regex = new RegExp(`^${username}$`, "i");
-    let rq = collection.findOne({ "username": regex }, { "projection": { "username": 1, "password": 1 } });
+    let rq = collection.findOne({ "username": regex }, { "projection": { "username": 1, "password": 1, "admin":1 } });
     rq.then((dbUser) => {
         if (!dbUser) {
             res.status(401).send("Username non valido");
@@ -127,7 +127,7 @@ app.post("/api/login", async (req, res, next) => {
                         res.setHeader("authorization", token);
                         // Fa si che la header authorization venga restituita al client
                         res.setHeader("access-control-expose-headers", "authorization");
-                        res.send({ "ris": "ok" });
+                        res.send(dbUser.admin);
                     }
                 }
             })
@@ -208,6 +208,22 @@ app.get("/api/periziebyid/:codperizia", (req, res, next) => {
     });
 });
 
+// recupera perizia in base a codoperatore
+app.get("/api/operatorebyid/:codoperatore", (req, res, next) => {
+    console.log(req.params.codoperatore)
+    const client = new MongoClient(connectionString);
+    client.connect().then(() => {
+        const collection = client.db(DBNAME).collection("perizie");
+        //let rq = collection.findOne({ "codoperatore": parseInt(req.params.codoperatore) });
+        let rq = collection.find({ "codoperatore": parseInt(req.params.codoperatore) }).toArray();
+        rq.then((data) => {
+            res.send(data);
+        });
+        rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err.message}`));
+        rq.finally(() => client.close());
+    });
+});
+
 //salva i nuovi dati ricevuti da client
 app.put("/api/aggiornaperizie", (req, res, next) => {
     console.log(req.body);
@@ -218,12 +234,21 @@ app.put("/api/aggiornaperizie", (req, res, next) => {
         let descrizione = req.body.descrizione;
         let nuoviCommenti = req.body.commenti;
         // modifica la descrizione, ancora da implementare modifica commenti
-        let rq = collection.updateOne({ "codperizia": codperizia }, { $set: { "descrizione": descrizione } });
-        rq.then((data) => {
-            res.send("ok");
+        let rqimg = collection.find({ "codperizia": codperizia }).project({ "immagini": 1, _id:0 }).toArray();
+        rqimg.then((data) => {
+            let immagini = data[0].immagini;
+            console.log(immagini);
+            immagini = immagini.map((img, i) => {
+                 img["commento"] = nuoviCommenti[i];
+                 return img
+            });
+            let rq = collection.updateOne({ "codperizia": codperizia }, { $set: { "descrizione": descrizione, immagini } });
+            rq.then((data) => {
+                res.send("ok");
+            });
+            rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err.message}`));
+            rq.finally(() => client.close());
         });
-        rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err.message}`));
-        rq.finally(() => client.close());
     });
 });
 

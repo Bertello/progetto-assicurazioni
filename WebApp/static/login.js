@@ -51,7 +51,7 @@ $(document).ready(function () {
 				}
 			});
 			request.then((response) => {
-				if(_username.val() == "admin@gmail.com")
+				if(response.data == true)
 					window.location.href = "index.html";
 				else
 					window.location.href = "errore.html";

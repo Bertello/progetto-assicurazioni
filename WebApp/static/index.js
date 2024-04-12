@@ -42,6 +42,8 @@ $(document).ready(async function () {
 
 function CaricaMappa() {
 	let mapContainer = $("#mapContainer").get(0);
+	$("#mapContainer").css("float","none");
+	$("#msg").html("");
 	$("#select").show();
 	// Posizione Vallauri    
 	let position = new google.maps.LatLng(44.5557763, 7.7347183);	
@@ -124,8 +126,11 @@ function caricaPerizie(mappa)
 			let option;
 			if($("#select option").length <= response.data.length)
 			{
-				option = $("<option>").text("codice perizia: " + perizia.codperizia).val(perizia.codperizia);
-				$("#select").append(option);
+				if($("#select").find("option[value='" + perizia.codoperatore + "']").length == 0)
+				{
+					option = $("<option>").text("codice operatore: " + perizia.codoperatore).val(perizia.codoperatore);
+					$("#select").append(option);
+				}
 			}
 			addMarker(perizia,mappa);
 		}
@@ -198,15 +203,15 @@ function editPerizia(codperizia) {
 
 // Funzione per salvare le modifiche apportate alla perizia
 function savePerizia(codperizia) {
+	let j = 0;
 	const data = {};
 	const formData =  new FormData(document.querySelector('.modal form'));
 
 	data.codperizia = codperizia;
 	data.descrizione = formData.get('descrizione');
-	data.commenti = [];
 	let commenti = [];
 
-	for (const coppia of formData.entries()) {
+	/*for (const coppia of formData.entries()) {
 		const [key, value] = coppia;
 
 		if (key.startsWith('immagine-commento-')) {
@@ -215,6 +220,18 @@ function savePerizia(codperizia) {
 				"commento": value
 			});
 		}
+	}*/
+
+	// Get all comment input fields
+	const commentInputs = document.querySelectorAll(`input[name^="immagine-commento-"]`);
+
+	// Create an object to store comments
+	const comments = {};
+	for (const input of commentInputs) {
+	  const immagine = input.name.split('-')[2]; // Extract image name from input name
+	  const commento = input.value; // Get comment value
+	  commenti[j] = commento; // Store comment in object
+	  j++;
 	}
 
 	data.commenti = commenti;
@@ -294,20 +311,23 @@ function savePerizia(codperizia) {
   }
 
   function onselectchange(mappa){
-	let codicePeriziaSelezionato = $("#select").val();
+	let OperatoreSelezionato = $("#select").val();
 
-	if (codicePeriziaSelezionato === 'tutti') {
+	if (OperatoreSelezionato === 'tutti') {
 	  CaricaMappa();
 	}
 	else
 	{
 		// Filtra i dati delle perizie in base al codice perizia selezionato
-		let request = inviaRichiesta('GET', '/api/periziebyid/' + codicePeriziaSelezionato);
+		let request = inviaRichiesta('GET', '/api/operatorebyid/' + OperatoreSelezionato);
 		request.then((response) => {
 			console.log(response.data);
-			let perizia = response.data;
 			removeAllMarkers();
-			addMarker(perizia,mappa);
+			for(let i = 0; i < response.data.length; i++)
+			{
+				let perizia = response.data[i];
+				addMarker(perizia,mappa);
+			}
 		});
 		request.catch(errore);
 	}
@@ -364,6 +384,7 @@ function visualizzaroute(codperizia){
 				console.log("Distanza: "+distanza)
 				console.log("Tempo: "+tempo)
 				$("#msg").html("Distanza: "+distanza+"<br> Tempo di percorrenza: "+tempo)
+				$("#mapContainer").css("float","left");
 				// crea un bottone che sull'onclick richiama caricamppa() e appendilo al div msg
 				let btn = $("<button>").text("Chiudi percorso").on("click",function(){
 					CaricaMappa()
