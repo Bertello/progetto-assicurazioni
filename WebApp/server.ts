@@ -1,4 +1,5 @@
 import _https from "https";
+import _http from "http";
 import _url from "url";
 import _fs from "fs";
 import _express from "express";
@@ -11,6 +12,7 @@ import _axios from "axios";
 import _nodemailer from "nodemailer";
 import _bcrypt from "bcryptjs";
 import _jwt from "jsonwebtoken";
+import { google } from 'googleapis';
 
 // Lettura delle password e parametri fondamentali
 _dotenv.config({ "path": ".env" });
@@ -36,12 +38,19 @@ const PRIVATE_KEY = _fs.readFileSync("./keys/privateKey.pem", "utf8");
 const CERTIFICATE = _fs.readFileSync("./keys/certificate.crt", "utf8");
 const ENCRYPTION_KEY = _fs.readFileSync("./keys/encryptionKey.txt", "utf8");
 const CREDENTIALS = { "key": PRIVATE_KEY, "cert": CERTIFICATE };
+
+const http_server = _http.createServer(app);
+http_server.listen(HTTPS_PORT, () => {
+    init();
+    console.log(`Server HTTP in ascolto sulla porta ${HTTPS_PORT}`);
+});
+
 const https_server = _https.createServer(CREDENTIALS, app);
 // Il secondo parametro facoltativo ipAddress consente di mettere il server in ascolto su una delle interfacce della macchina, se non lo metto viene messo in ascolto su tutte le interfacce (3 --> loopback e 2 di rete)
-https_server.listen(HTTPS_PORT, () => {
+/*https_server.listen(HTTPS_PORT, () => {
     init();
     console.log(`Server HTTPS in ascolto sulla porta ${HTTPS_PORT}`);
-});
+});*/
 
 function init() {
     _fs.readFile("./static/error.html", function (err, data) {
@@ -251,6 +260,95 @@ app.put("/api/aggiornaperizie", (req, res, next) => {
         });
     });
 });
+
+
+
+
+
+
+
+
+/* CREA UTENTE E INVIO MAIL*/
+app.post("/api/nuovoUtente", async (req, res, next) => {
+    const user = req["body"]["utente"];
+    user["_id"] = new ObjectId();
+    user["password"] = creaPassword();
+    console.log(user)
+
+    inviaPassword(user["mail"], user["password"], res);
+    user["password"] = _bcrypt.hashSync(user["password"]);
+
+    const client = new MongoClient(connectionString);
+    await client.connect();
+    const collection = client.db(DBNAME).collection("utenti");
+    let rq = collection.insertOne(user)
+    rq.then((data) => res.send(data))
+    rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err.message}`));
+    rq.finally(() => client.close());
+})
+
+function creaPassword(): string {
+    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+        const randomIndex = Math.floor(Math.random() * charset.length);
+        password += charset[randomIndex];
+    }
+    return password;
+}
+
+const o_Auth2 = JSON.parse(process.env.oAuthCredential as any)
+const OAuth2 = google.auth.OAuth2; // Oggetto OAuth2
+const OAuth2Client = new OAuth2(
+    o_Auth2["client_id"],
+    o_Auth2["client_secret"]
+);
+OAuth2Client.setCredentials({
+    refresh_token: o_Auth2.refresh_token,
+});
+let message = _fs.readFileSync("./message.html", "utf8");
+
+async function inviaPassword(email: string, password: string, res: any) {
+    message = message.replace("__user", email).replace("__password", password);
+    const access_token = await OAuth2Client.getAccessToken().catch((err) => {
+        res.status(500).send(`Errore richiesta Access_Token a Google: ${err}`);
+    });
+    const auth = {
+        "type": "OAuth2",
+        "user": process.env.gmailUser,
+        "clientId": o_Auth2.client_id,
+        "clientSecret": o_Auth2.client_secret,
+        "refreshToken": o_Auth2.refresh_token,
+        "accessToken": access_token,
+    }
+    const transporter = _nodemailer.createTransport({
+        "service": "gmail",
+        "auth": auth
+    });
+    let mailOptions = {
+        "from": auth.user,
+        "to": email,
+        "subject": "Nuova password di accesso a Rilievi e Perizie",
+        "html": message,
+        /*"attachments": [
+            {
+                "filename": "nuovaPassword.png",
+                "path": "./qrCode.png"
+            }
+        ]*/
+    };
+
+    transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+            console.log(err)
+            res.status(500).send(`Errore invio mail:\n${err.message}`);
+        }
+        else {
+            console.log("OK")
+            res.send("Email inviata correttamente!");
+        }
+    });
+}
 
 
 // La .send() mette status 200 e fa il parsing. In caso di codice diverso da 200 la .send() non fa il parsing

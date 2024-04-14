@@ -1,6 +1,6 @@
 _ implementare crea utente
 _ app ionic
-_ fare una bella grafica
-_ modificare commento
+_ fare una bella grafica (da aggiustare: modale per modifica e visualizza percorso)
+_ modificare commento (fatto)
 _ modificare select che faccia selezione su operatore (fatto)
-_ cambiare login aggiungendo booleana
+_ cambiare login aggiungendo booleana (fatto)

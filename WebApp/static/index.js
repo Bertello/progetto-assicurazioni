@@ -22,21 +22,48 @@ $(document).ready(async function () {
 		window.location.href = "login.html"
 	});
 
-	$("#btnnascondi").hide();
-	$("#map").hide();
+	$("#infopercorso").hide();
+	$("#btnvisualizza").hide();
+	CaricaMappa();
+	$("#creautente").hide();
 
 	$("#btnvisualizza").on("click", function () {
 		$("#btnnascondi").show();
 		$("#btnvisualizza").hide();
 		$("#map").show();
+		$("#creautente").hide();
 		CaricaMappa()
 	});
 
 	$("#btnnascondi").on("click", function () {
 		$("#btnnascondi").hide();
 		$("#btnvisualizza").show();
+		$("#creautente").hide();
 		$("#map").hide();
 	});
+
+	$("#btncrea").on("click", function () {
+		$("#btnnascondi").hide();
+		$("#btnvisualizza").show();
+		$("#map").hide();
+		$("#creautente").show();
+	});
+
+	$("#btnInvia").on("click", function () {
+        const utente = {
+            username: $("#username").val(),
+            mail: $("#mail").val()
+        }
+
+		console.log(utente);
+
+        inviaRichiesta("POST", "/api/nuovoUtente", {utente}).catch(errore).then(function (response) {
+            console.log(response)
+            alert("Registrazione avvenuta con successo");
+            // qua fai cosa vuoi
+            // window.location.href = "/index.html"
+        })
+    })
 	
 });
 
@@ -45,6 +72,7 @@ function CaricaMappa() {
 	$("#mapContainer").css("float","none");
 	$("#msg").html("");
 	$("#select").show();
+	$("#select-label").show();
 	// Posizione Vallauri    
 	let position = new google.maps.LatLng(44.5557763, 7.7347183);	
 	let mapOptions = {
@@ -147,50 +175,97 @@ function editPerizia(codperizia) {
 		modal.classList.add('modal');
 		modal.id = 'modal';
 		modal.innerHTML = `
-		  <div class="modal-content">
-		  	<button class="close-button" onclick="closeModal()">X</button>
-			<h2>Modifica perizia ${perizia.codperizia}</h2>
-			<form>
-			  <ul>
-				<li>
-				  <label for="codperizia">Codice perizia:</label>
-				  <input type="text" id="codperizia" name="codperizia" value="${perizia.codperizia}" disabled>
-				</li>
-				<li>
-				  <label for="codoperatore">Codice operatore:</label>
-				  <input type="text" id="codoperatore" name="codoperatore" value="${perizia.codoperatore}" disabled>
-				</li>
-				<li>
-				  <label for="oraperizia">Ora perizia:</label>
-				  <input type="text" id="oraperizia" name="oraperizia" value="${perizia.oraperizia}" disabled>
-				</li>
-				<li>
-				  <label for="dataperizia">Data perizia:</label>
-				  <input type="date" id="dataperizia" name="dataperizia" value="${perizia.dataperizia}" disabled>
-				</li>
-				<li>
-				  <label for="coordinate">Coordinate:</label>
-				  <input type="text" id="coordinate" name="coordinate" value="${perizia.coordinate}" disabled>
-				</li>
-				<li>
-				  <label for="descrizione">Descrizione:</label>
-				  <textarea id="descrizione" name="descrizione">${perizia.descrizione}</textarea>
-				</li>
-			  </ul>
-			  <h3>Immagini</h3>
-			  <ul class="images-container">
-				${perizia.immagini.map(immagine => {
-				  return `
-					<li>
-					  <img src="img/${immagine.img}" alt="Immagine perizia" style="width: 65px; height:65">
-					  <input type="text" name="immagine-commento-${immagine.img}" value="${immagine.commento}">
-					</li>
-				  `;
-				}).join('')}
-			  </ul>
-			</form>
-			<button style="width:150px" onclick="savePerizia(${perizia.codperizia})">Salva</button>
-		  </div>
+		<div class="modal-content overflow-auto">
+		<button type="button" class="close" onclick="closeModal()">
+			<i class="fas fa-times"></i>
+		</button>
+		<h2 class="text-center mb-4">Modifica perizia ${perizia.codperizia}</h2>
+		<form>
+			<div class="form-group">
+				<label for="codperizia">Codice perizia:</label>
+				<input type="text" id="codperizia" name="codperizia" value="${perizia.codperizia}" class="form-control" disabled>
+			</div>
+			<div class="form-group">
+				<label for="codoperatore">Codice operatore:</label>
+				<input type="text" id="codoperatore" name="codoperatore" value="${perizia.codoperatore}" class="form-control" disabled>
+			</div>
+			<div class="form-group">
+				<label for="oraperizia">Ora perizia:</label>
+				<input type="text" id="oraperizia" name="oraperizia" value="${perizia.oraperizia}" class="form-control" disabled>
+			</div>
+			<div class="form-group">
+				<label for="dataperizia">Data perizia:</label>
+				<input type="date" id="dataperizia" name="dataperizia" value="${perizia.dataperizia}" class="form-control" disabled>
+			</div>
+			<div class="form-group">
+				<label for="coordinate">Coordinate:</label>
+				<input type="text" id="coordinate" name="coordinate" value="${perizia.coordinate}" class="form-control" disabled>
+			</div>
+			<div class="form-group">
+				<label for="descrizione">Descrizione:</label>
+				<textarea id="descrizione" name="descrizione" class="form-control">${perizia.descrizione}</textarea>
+			</div>
+			<h3 class="mt-4">Immagini</h3>
+			<div class="images-container row">
+            ${perizia.immagini.map(immagine => {
+                return `
+                <div class="col-md-4 mb-3">
+                    <div class="image-item text-center">
+                        <img src="img/${immagine.img}" alt="Immagine perizia" class="img-fluid rounded mb-2" style="height: 150px;">
+                        <input type="text" name="immagine-commento-${immagine.img}" value="${immagine.commento}" class="form-control">
+                    </div>
+                </div>
+                `;
+            }).join('')}
+        	</div>
+			<button type="button" class="btn btn-primary mt-3" style="width:150px" onclick="savePerizia(${perizia.codperizia})">
+				Salva
+			</button>
+		</form>
+	</div>
+
+	<style>
+		.modal-content {
+			background-color: #fff;
+			border-radius: 10px;
+			box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+			padding: 20px;
+		}
+
+		.close {
+			position: absolute;
+			top: 15px;
+			right: 15px;
+			background: none;
+			border: none;
+			font-size: 24px;
+			color: #888;
+			cursor: pointer;
+		}
+
+		.close:hover {
+			color: #555;
+		}
+
+		.form-group label {
+			font-weight: bold;
+		}
+
+		.images-container {
+			display: flex;
+			flex-wrap: wrap;
+		}
+
+		.image-item {
+			width: 100%;
+			text-align: center;
+		}
+
+		.image-item input[type="text"] {
+			width: 100%;
+			margin-top: 5px;
+		}
+	</style>
 		`;
 	  
 		// Aggiungi la modale al body e mostrala
@@ -279,27 +354,88 @@ function savePerizia(codperizia) {
 		"content": 
 		`
 		<div class="info-window">
-			<h2>Perizia ${perizia.codperizia}</h2>
-				<ul>
-						<li>Codice operatore: ${perizia.codoperatore}</li>
-						<li>Ora perizia: ${perizia.oraperizia}</li>
-						<li>Data perizia: ${perizia.dataperizia}</li>
-						<li>Coordinate: ${perizia.coordinate}</li>
-						<li>Descrizione: ${perizia.descrizione}</li>
-				</ul>
-				<div class="images-container">
-					${perizia.immagini.map(immagine => {
-						return `
-						<div class="image-wrapper">
-							<img src="img/${immagine.img}" alt="Immagine perizia" style="width: 50 px; height:50px">
-							${immagine.commento ? `<p class="image-comment">Commento: ${immagine.commento}</p>` : ''}
-						</div>
-						  `;
-					}).join('')}
+		<h2 class="info-title">Perizia ${perizia.codperizia}</h2>
+		<ul class="info-list">
+			<li><strong>Codice operatore:</strong> ${perizia.codoperatore}</li>
+			<li><strong>Ora perizia:</strong> ${perizia.oraperizia}</li>
+			<li><strong>Data perizia:</strong> ${perizia.dataperizia}</li>
+			<li><strong>Coordinate:</strong> ${perizia.coordinate}</li>
+			<li><strong>Descrizione:</strong> ${perizia.descrizione}</li>
+		</ul>
+		<div class="images-container">
+			${perizia.immagini.map(immagine => {
+				return `
+				<div class="image-wrapper">
+					<img src="img/${immagine.img}" alt="Immagine perizia" class="perizia-image">
+					${immagine.commento ? `<p class="image-comment">Commento: ${immagine.commento}</p>` : ''}
 				</div>
+				`;
+			}).join('')}
+		</div>
+		<div class="buttons-container">
 			<button class="edit-button" onclick="editPerizia(${perizia.codperizia})">Modifica perizia</button>
 			<button class="edit-button" onclick="visualizzaroute(${perizia.codperizia})">Visualizza percorso</button>
 		</div>
+	</div>
+
+	<style>
+		.info-window {
+			background-color: #fff;
+			padding: 20px;
+			border-radius: 5px;
+			box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+		}
+
+		.info-title {
+			font-size: 24px;
+			margin-bottom: 10px;
+		}
+
+		.info-list {
+			list-style: none;
+			padding: 0;
+		}
+
+		.info-list li {
+			margin-bottom: 5px;
+		}
+
+		.perizia-image {
+			width: 100px;
+			height: 100px;
+			object-fit: cover;
+			border-radius: 5px;
+			margin-right: 10px;
+		}
+
+		.image-wrapper {
+			margin-bottom: 10px;
+		}
+
+		.image-comment {
+			margin-top: 5px;
+			font-style: italic;
+		}
+
+		.buttons-container {
+			margin-top: 15px;
+		}
+
+		.edit-button {
+			background-color: #007bff;
+			color: #fff;
+			border: none;
+			padding: 10px 20px;
+			border-radius: 5px;
+			cursor: pointer;
+			transition: background-color 0.3s;
+		}
+
+		.edit-button:hover {
+			background-color: #0056b3;
+		}
+	</style>
+
 	 	`
 	}
 
@@ -343,8 +479,10 @@ function savePerizia(codperizia) {
 }
 
 function visualizzaroute(codperizia){
+	$("#infopercorso").show();
 	$("#select").val("tutti");
 	$("#select").hide();
+	$("#select-label").hide();
 	console.log(codperizia);
 	let request = inviaRichiesta('GET', '/api/periziebyid/' + codperizia);
 	request.then((response) => {
@@ -383,13 +521,14 @@ function visualizzaroute(codperizia){
 				let tempo = result.routes[0].legs[0].duration.text
 				console.log("Distanza: "+distanza)
 				console.log("Tempo: "+tempo)
-				$("#msg").html("Distanza: "+distanza+"<br> Tempo di percorrenza: "+tempo)
+				$("#distanza").text(distanza)
+				$("#tempo").text(tempo)
 				$("#mapContainer").css("float","left");
 				// crea un bottone che sull'onclick richiama caricamppa() e appendilo al div msg
-				let btn = $("<button>").text("Chiudi percorso").on("click",function(){
+				$("#chiudipercorso").on("click",function(){
+					$("#infopercorso").hide();
 					CaricaMappa()
 				})
-				$("#msg").append(btn)
 			}
 		}).catch((err) => {
 			console.log(err)

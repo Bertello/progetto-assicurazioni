@@ -11,29 +11,198 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <link rel="stylesheet" href="index.css">
 
-	<script src="./jquery-3.5.1.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        #navbar {
+            background-color: #343a40;
+            height: 80px;
+        }
+
+        #navbar a {
+            color: #ffffff !important;
+        }
+
+        #navbar .btn {
+            margin-left: 10px;
+        }
+
+        #map {
+            background-color: #ffffff;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            padding: 20px;
+        }
+
+        #select {
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        #select-label {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .logo img {
+        max-height: 60px; /* Altezza massima del logo */
+        height: auto; /* Altezza automatica */
+        margin-right: 10px;
+    }
+
+    #creautente {
+            margin-top: 50px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #creautente h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #343a40;
+        }
+
+        #creautente h5 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #6c757d;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="email"] {
+            border-radius: 15px;
+            padding: 8px 15px; /* Rimpicciolimento degli input */
+            border: 2px solid #6c757d;
+        }
+
+        .form-group input[type="text"]::placeholder,
+        .form-group input[type="email"]::placeholder {
+            color: #6c757d;
+        }
+
+        .btn-primary {
+            border-radius: 25px;
+            padding: 10px;
+            background-color: #333; /* Colore più scuro per il bottone */
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #222; /* Cambio colore al passaggio del mouse */
+        }
+
+        .form-group .input-group-text {
+            background-color: #6c757d;
+            color: #fff; /* Colore delle icone */
+            border: 2px solid #6c757d;
+            border-radius: 15px;
+        }
+    </style>
+
+    <script src="./jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-	<script src="./axios@1.1.2.min.js"></script>
-	<script src="./libreria.js"></script>
-	<script src="./index.js"></script>
+    <script src="./axios@1.1.2.min.js"></script>
+    <script src="./libreria.js"></script>
+    <script src="./index.js"></script>
 </head>
 
 <body>
-    <div id="bottoni">
-        <button type="button" class="btn btn-secondary" style="margin-top:16px" id="btnLogout">Logout</button>
-        <button type="button" class="btn btn-secondary" style="margin-top:16px" id="btncrea">Crea utente</button>
-        <button type="button" class="btn btn-secondary" style="margin-top:16px" id="btnvisualizza">Visualizza mappa</button>
-        <button type="button" class="btn btn-secondary" style="margin-top:16px" id="btnnascondi">Nascondi mappa</button>
+    <nav id="navbar" class="navbar navbar-expand-lg navbar-dark">
+        <div class="logo">
+            <img src="img/logo.png" alt="Rilievi e Perizie Logo">
+        </div>
+        <div class="ml-auto navbar-text text-white">
+            Rilievi e Perizie - Admin
+        </div>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <button type="button" class="btn btn-outline-light" id="btnvisualizza"><i
+                            class="fas fa-map"></i> Visualizza mappa</button>
+                </li>
+                <li class="nav-item">
+                    <button type="button" class="btn btn-outline-light" id="btnnascondi"><i
+                            class="fas fa-eye-slash"></i> Nascondi mappa</button>
+                </li>
+                <li class="nav-item">
+                    <button type="button" class="btn btn-outline-light" id="btncrea"><i
+                            class="fas fa-user-plus"></i> Crea utente</button>
+                </li>
+                <li class="nav-item">
+                    <button type="button" class="btn btn-outline-light" id="btnLogout"><i
+                            class="fas fa-sign-out-alt"></i> Logout</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div id="map" class="container-fluid">
+        <div class="row">
+            <div class="col-lg-8">
+                <div id="mapContainer"></div>
+            </div>
+            <div class="col-lg-4">
+                <label for="select" id="select-label"><i class="fas fa-user"></i> Seleziona le perizie in base al
+                    codice dell'operatore:</label>
+                <select id="select" class="form-control">
+                    <option value="tutti">Tutti</option>
+                </select>
+            </div>
+        </div>
+        <div class="row" id="infopercorso" style="position: absolute; top: 20%; right: 20%;">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Informazioni Percorso</h5>
+                        <div class="card-text">
+                            <p><i class="fas fa-road"></i> <b>Distanza: </b><span id="distanza"></span></p>
+                            <p><i class="fas fa-clock"></i> <b>Tempo di percorrenza: </b><span id="tempo"></span></p>
+                        </div>
+                        <button id="chiudipercorso" class="btn btn-secondary">Chiudi percorso</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id="map" class="container-fluid"> 
-        <select class="col col-lg-2" id="select" class="form-control" style="width: 200px; margin-top: 16px;">
-            <option value="tutti">Tutti</option>
-        </select>
-        <div id="mapContainer" class="col col-lg-8"></div>
-        <div class="msg" id="msg" class="col col-lg-2">   
-        </div>
-    </div>	
+    <div id="creautente" class="container">
+        <h2>Crea le credenziali per un nuovo operatore</h2>
+        <h5>La password verrà salvata cifrata sul database e verrà inviata all'indirizzo mail specificato</h5>
+        <form class="p-5">
+            <div style="width: 50%; margin: 0 auto;">
+                <div class="form-group">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        </div>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Inserisci username" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                        </div>
+                        <input type="email" class="form-control" id="mail" name="mail" placeholder="Inserisci la mail" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" id="btnInvia">Invia</button>
+            </div>
+
+        </form>
+    </div>
+
 </body>
 
 </html>

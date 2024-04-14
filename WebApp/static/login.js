@@ -7,7 +7,6 @@ $(document).ready(function () {
 
 	_lblErrore.hide();
 
-
 	$("#btnLogin").on("click", controllaLogin)
 
 	// il submit deve partire anche senza click 
