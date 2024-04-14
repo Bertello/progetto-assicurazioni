@@ -1,6 +1,11 @@
-_ implementare crea utente
+_ implementare crea utente (fatto)
 _ app ionic
 _ fare una bella grafica (da aggiustare: modale per modifica e visualizza percorso)
 _ modificare commento (fatto)
 _ modificare select che faccia selezione su operatore (fatto)
 _ cambiare login aggiungendo booleana (fatto)
+_ cambiare testo alla mail.
+_ aggiungere slavtaggio admin nel database.
+_ mettere occhiolino apposto quando si sbaglia. (fatto)
+_ rendere l'username univoco.
+_ fare aggiungere codoperatore dall'admin 

@@ -45,9 +45,9 @@ http_server.listen(HTTPS_PORT, () => {
     console.log(`Server HTTP in ascolto sulla porta ${HTTPS_PORT}`);
 });
 
-const https_server = _https.createServer(CREDENTIALS, app);
+/*const https_server = _https.createServer(CREDENTIALS, app);
 // Il secondo parametro facoltativo ipAddress consente di mettere il server in ascolto su una delle interfacce della macchina, se non lo metto viene messo in ascolto su tutte le interfacce (3 --> loopback e 2 di rete)
-/*https_server.listen(HTTPS_PORT, () => {
+https_server.listen(HTTPS_PORT, () => {
     init();
     console.log(`Server HTTPS in ascolto sulla porta ${HTTPS_PORT}`);
 });*/
@@ -271,9 +271,12 @@ app.put("/api/aggiornaperizie", (req, res, next) => {
 /* CREA UTENTE E INVIO MAIL*/
 app.post("/api/nuovoUtente", async (req, res, next) => {
     const user = req["body"]["utente"];
+    console.log(user)
+
+    
+
     user["_id"] = new ObjectId();
     user["password"] = creaPassword();
-    console.log(user)
 
     inviaPassword(user["mail"], user["password"], res);
     user["password"] = _bcrypt.hashSync(user["password"]);
@@ -336,8 +339,7 @@ async function inviaPassword(email: string, password: string, res: any) {
                 "path": "./qrCode.png"
             }
         ]*/
-    };
-
+    }
     transporter.sendMail(mailOptions, (err, info) => {
         if (err) {
             console.log(err)

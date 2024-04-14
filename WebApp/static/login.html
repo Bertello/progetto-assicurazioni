@@ -10,9 +10,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
 
     <style>
-        h2{
-          font-size: 30pt;
+        h2 {
+            font-size: 30pt;
         }
+
         body {
             background-color: #f8f9fa;
             font-family: Arial, sans-serif;
@@ -42,12 +43,13 @@
 
         .input-group-text {
             background-color: #6c757d;
-            color: #343a40; /* colore testo icona */
+            color: #343a40;
             border-color: #6c757d;
+            border-radius: 25px;
         }
 
         .input-group-text .fas {
-            color: #343a40; /* colore icone */
+            color: #343a40;
         }
 
         .form-control {
@@ -72,14 +74,14 @@
         }
 
         .logo img {
-            width: 180px; /* Modifica delle dimensioni del logo */
+            width: 180px;
             height: auto;
         }
 
         .form-group input[type="text"],
         .form-group input[type="password"] {
-            border-radius: 25px;
-            padding: 12px 20px;
+            border-radius: 25px !important;
+            padding: 10px 20px; /* Modifica delle dimensioni dell'input */
             border: 2px solid #6c757d;
         }
 
@@ -92,6 +94,21 @@
             border-radius: 25px;
             padding: 10px;
         }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        #togglePassword {
+            position: absolute;
+            top: 43.5%;
+            right: 10%; /* Regola la posizione dell'icona */
+            transform: translateY(-50%);
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+
     </style>
 
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -114,7 +131,7 @@
         <div id="login" class="row">
             <div class="col-md-3 col-sm-2"></div>
             <div class="col-md-6 col-sm-8">
-                <form id="frmLogin">
+                <form id="frmLogin" style="width: 90% !important;margin: 0 auto;">
                     <div class="form-group input-group">
                         <span class="input-group-text">
                             <i class="fas fa-user"></i>
@@ -128,6 +145,10 @@
                         </span>
                         <input type="password" class="form-control" id="pwd" placeholder="Password">
                     </div>
+                    <button class="btn btn-outline-secondary rounded-right" type="button" id="togglePassword">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    
 
                     <div class="alert alert-danger alert-dismissible" id="lblErrore">
                         <button type="button" class="close" >&times;</button>

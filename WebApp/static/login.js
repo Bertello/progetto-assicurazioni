@@ -16,6 +16,13 @@ $(document).ready(function () {
 			controllaLogin();
 	});
 
+	// Funzione per mostrare/nascondere la password
+	$('#togglePassword').click(function() {
+		const pwd = $('#pwd');
+		const type = pwd.attr('type') === 'password' ? 'text' : 'password';
+		pwd.attr('type', type);
+		$(this).find('i').toggleClass('fa-eye fa-eye-slash');
+	});
 
 	function controllaLogin() {
 		_username.removeClass("is-invalid");
@@ -42,6 +49,8 @@ $(document).ready(function () {
 			);
 			request.catch(function (err) {
 				if (err.response.status == 401) {
+					// mettere a togglepassowrd in css un top: 30%;
+					$("#togglePassword").css("top", "32%");
 					_lblErrore.show();
 					console.log(err.response.data);
 				}
@@ -61,6 +70,7 @@ $(document).ready(function () {
 
 	_lblErrore.children("button").on("click", function () {
 		_lblErrore.hide();
+		$("#togglePassword").css("top", "43.5%");
 	})
 
 });
