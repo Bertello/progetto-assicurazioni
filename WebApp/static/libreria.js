@@ -50,6 +50,7 @@ function inviaRichiesta(method, url, parameters = {}) {
 }
 
 function errore(err) {
+	console.log(err);
 	if (!err.response)
 		alert("Connection Refused or Server timeout");
 	else if (err.response.status == 200)
@@ -57,6 +58,8 @@ function errore(err) {
 	else if (err.response.status == 403) {
 		alert("Sessione scaduta");
 		window.location.href = "login.html"
+	} else if(err.response.status == 400) {
+		alert(err.response.data);
 	}
 	else {
 		alert("Server Error: " + err.response.status + " - " + err.response.data);

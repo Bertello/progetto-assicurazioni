@@ -116,7 +116,7 @@ app.post("/api/login", async (req, res, next) => {
     await client.connect();
     const collection = client.db(DBNAME).collection("utenti");
     let regex = new RegExp(`^${username}$`, "i");
-    let rq = collection.findOne({ "username": regex }, { "projection": { "username": 1, "password": 1, "admin":1 } });
+    let rq = collection.findOne({ "username": regex }, { "projection": { "username": 1, "password": 1, "admin": 1 } });
     rq.then((dbUser) => {
         if (!dbUser) {
             res.status(401).send("Username non valido");
@@ -243,13 +243,13 @@ app.put("/api/aggiornaperizie", (req, res, next) => {
         let descrizione = req.body.descrizione;
         let nuoviCommenti = req.body.commenti;
         // modifica la descrizione, ancora da implementare modifica commenti
-        let rqimg = collection.find({ "codperizia": codperizia }).project({ "immagini": 1, _id:0 }).toArray();
+        let rqimg = collection.find({ "codperizia": codperizia }).project({ "immagini": 1, _id: 0 }).toArray();
         rqimg.then((data) => {
             let immagini = data[0].immagini;
             console.log(immagini);
             immagini = immagini.map((img, i) => {
-                 img["commento"] = nuoviCommenti[i];
-                 return img
+                img["commento"] = nuoviCommenti[i];
+                return img
             });
             let rq = collection.updateOne({ "codperizia": codperizia }, { $set: { "descrizione": descrizione, immagini } });
             rq.then((data) => {
@@ -258,6 +258,19 @@ app.put("/api/aggiornaperizie", (req, res, next) => {
             rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err.message}`));
             rq.finally(() => client.close());
         });
+    });
+});
+
+app.get("/api/operatore", (req, res, next) => {
+    const client = new MongoClient(connectionString);
+    client.connect().then(() => {
+        const collection = client.db(DBNAME).collection("utenti");
+        let rq = collection.find({"admin":false}).toArray();
+        rq.then((data) => {
+            res.send(data);
+        });
+        rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err.message}`));
+        rq.finally(() => client.close());
     });
 });
 
@@ -273,21 +286,41 @@ app.post("/api/nuovoUtente", async (req, res, next) => {
     const user = req["body"]["utente"];
     console.log(user)
 
-    
-
-    user["_id"] = new ObjectId();
-    user["password"] = creaPassword();
-
-    inviaPassword(user["mail"], user["password"], res);
-    user["password"] = _bcrypt.hashSync(user["password"]);
-
     const client = new MongoClient(connectionString);
     await client.connect();
     const collection = client.db(DBNAME).collection("utenti");
-    let rq = collection.insertOne(user)
-    rq.then((data) => res.send(data))
-    rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err.message}`));
-    rq.finally(() => client.close());
+    console.log(user)
+    const isUtenteEsistente = await collection.findOne({
+        $or: [
+            { username: user.username },
+            { mail: user.mail }
+        ]
+    });
+    if (isUtenteEsistente) {
+        res.status(400).send("Username o email già esistenti");
+    } else {
+        const userCount = await collection.countDocuments();
+        let codOperatore = userCount - 1;
+
+        const isCodOperatoreEsistente = await collection.findOne({ "codoperatore": codOperatore });
+        if (isCodOperatoreEsistente)
+            codOperatore++;
+
+        user["codoperatore"] = codOperatore;
+        user["admin"] = false;
+        user["_id"] = new ObjectId();
+        user["password"] = creaPassword();
+
+        inviaPassword(user, res);
+        console.log(user)
+        user["password"] = _bcrypt.hashSync(user["password"]);
+        //console.log(user)
+        let rq = collection.insertOne(user)
+        rq.then((data) => res.send(data))
+        rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err.message}`));
+        rq.finally(() => client.close());
+    }
+
 })
 
 function creaPassword(): string {
@@ -311,8 +344,8 @@ OAuth2Client.setCredentials({
 });
 let message = _fs.readFileSync("./message.html", "utf8");
 
-async function inviaPassword(email: string, password: string, res: any) {
-    message = message.replace("__user", email).replace("__password", password);
+async function inviaPassword(user: any, res: any) {
+    message = message.replace("__user", user.username).replace("__password", user.password);
     const access_token = await OAuth2Client.getAccessToken().catch((err) => {
         res.status(500).send(`Errore richiesta Access_Token a Google: ${err}`);
     });
@@ -330,7 +363,7 @@ async function inviaPassword(email: string, password: string, res: any) {
     });
     let mailOptions = {
         "from": auth.user,
-        "to": email,
+        "to": user.mail,
         "subject": "Nuova password di accesso a Rilievi e Perizie",
         "html": message,
         /*"attachments": [

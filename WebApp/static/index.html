@@ -90,7 +90,7 @@
         .btn-primary {
             border-radius: 25px;
             padding: 10px;
-            background-color: #333; /* Colore più scuro per il bottone */
+            background-color: #333 !important; /* Colore più scuro per il bottone */
             border: none;
         }
 
@@ -179,7 +179,7 @@
     <div id="creautente" class="container">
         <h2>Crea le credenziali per un nuovo operatore</h2>
         <h5>La password verrà salvata cifrata sul database e verrà inviata all'indirizzo mail specificato</h5>
-        <form class="p-5">
+        <div class="p-5">
             <div style="width: 40%; margin: 0 auto;">
                 <div class="form-group">
                     <div class="input-group">
@@ -194,10 +194,10 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text"><i class="fas fa-envelope"></i></span>
                         </div>
-                        <input type="email" class="form-control" id="mail" name="mail" placeholder="Inserisci la mail" required>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Inserisci la mail" required>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block" id="btnInvia">Invia</button>
+                <button class="btn btn-primary btn-block" id="btnInvia" disabled>Invia</button>
             </div>
 
         </form>

@@ -1,13 +1,13 @@
 "use strict"
 
-	// vettore globale di markers 
-	let markers = [];
-	let contmarkers = 0;
+// vettore globale di markers 
+let markers = [];
+let contmarkers = 0;
 
 
 $(document).ready(async function () {
 
-	
+
 	await caricaGoogleMaps();
 
 	/* ************************* LOGOUT  *********************** */
@@ -50,77 +50,101 @@ $(document).ready(async function () {
 	});
 
 	$("#btnInvia").on("click", function () {
-        const utente = {
-            username: $("#username").val(),
-            mail: $("#mail").val()
-        }
+		const utente = {
+			username: $("#username").val(),
+			mail: $("#mail").val()
+		}
 
-		console.log(utente);
+		inviaRichiesta("POST", "/api/nuovoUtente", { utente }).catch(errore)
+			.then(function (response) {
+				console.log(response)
+				if (response!=undefined && response.data.matchedCount!=0)
+					alert("Utente creato correttamente")
+				//window.location.href = "index.html"
+				$("#username").val("")
+				$("#mail").val("")
+			})
+	})
 
-        inviaRichiesta("POST", "/api/nuovoUtente", {utente}).catch(errore).then(function (response) {
-            console.log(response)
-            alert("Registrazione avvenuta con successo");
-            // qua fai cosa vuoi
-            // window.location.href = "/index.html"
-        })
-    })
+	const usernameinput = $("#username");
+	const emailInput = $("#email");
+	usernameinput.on('input', function() {
+		const usernameValue = usernameinput.val();
+		const emailValue = emailInput.val();
+		const isValid = usernameValue.length > 0 && validateEmail(emailValue);
+		let bntinvia = $("#btnInvia");
+		bntinvia.prop("disabled", !isValid);
+	});
 
-	
-	
+	emailInput.on('input', function() {
+		const usernameValue = usernameinput.val();
+		const emailValue = emailInput.val();
+		const isValid = usernameValue.length > 0 && validateEmail(emailValue);
+		let bntinvia = $("#btnInvia");
+		bntinvia.prop("disabled", !isValid);
+	});
+
+	function validateEmail(email) {
+		const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+		return re.test(email);
+	}
+
+
+
 });
 
 function CaricaMappa() {
 	let mapContainer = $("#mapContainer").get(0);
-	$("#mapContainer").css("float","none");
+	$("#mapContainer").css("float", "none");
 	$("#msg").html("");
 	$("#select").show();
 	$("#select-label").show();
 	// Posizione Vallauri    
-	let position = new google.maps.LatLng(44.5557763, 7.7347183);	
+	let position = new google.maps.LatLng(44.5557763, 7.7347183);
 	let mapOptions = {
-		"center":position,
-		"zoom":16,
-		"mapTypeId":google.maps.MapTypeId.ROADMAP, 
-			
-		"disableDefaultUI": true,  
-		
+		"center": position,
+		"zoom": 16,
+		"mapTypeId": google.maps.MapTypeId.ROADMAP,
+
+		"disableDefaultUI": true,
+
 		"mapTypeControl": true,
 		"mapTypeControlOptions": {
 			"style": google.maps.MapTypeControlStyle.HORIZONTAL_BAR, // default
 			"style": google.maps.MapTypeControlStyle.DROPDOWN_MENU,  // verticale
 			"position": google.maps.ControlPosition.TOP_LEFT,
-		},		
-		
+		},
+
 		"streetViewControl": true,
 		"streetViewControlOptions": {
 			"position": google.maps.ControlPosition.RIGHT_CENTER
 		},
-		
+
 		"zoomControl": true,
 		"zoomControlOptions": {
 			"position": google.maps.ControlPosition.RIGHT_CENTER
 		},
-			
+
 		"fullscreenControl": false,
 		"fullscreenOptions": {
-		},	
-					"scaleControl": true,       
+		},
+		"scaleControl": true,
 		"scaleControlOptions": {
 		}
 	}
-	let mappa = new google.maps.Map(mapContainer, mapOptions); 
+	let mappa = new google.maps.Map(mapContainer, mapOptions);
 	let markerOptions = {
 		"map": mappa,
 		"icon": "img/workshop.png",
 		"position": position,
 		"title": "I.I.S. G. Vallauri",
 		"draggable": true,
-		"animation": google.maps.Animation.DROP 
+		"animation": google.maps.Animation.DROP
 	}
 	let marker = new google.maps.Marker(markerOptions);
 	let infoWindowOptions = {
-		"content": 
-		`
+		"content":
+			`
 			<div id="infoWindow">
 				<h2>I.I.S. G. Vallauri</h2>
 				<img src="img/icoVallauri.png">
@@ -133,36 +157,58 @@ function CaricaMappa() {
 
 	let infoWindow = new google.maps.InfoWindow(infoWindowOptions);
 
-	marker.addListener("click", function() {
+	marker.addListener("click", function () {
 		infoWindow.open(mappa, marker);
 	});
 
-	$("#select").on("change", function(){
+	$("#select").on("change", function () {
 		onselectchange(mappa);
 	});
 	caricaPerizie(mappa);
 }
 
-function caricaPerizie(mappa)
-{
+function caricaPerizie(mappa) {
 	// manda richiesta al server che ti invia tutte le perizie
 	let request = inviaRichiesta('GET', '/api/perizie');
 	request.then((response) => {
 		console.log(response.data);
-		for (let perizia of response.data)
-		{
+		for (let perizia of response.data) {
 			// carichiamo la select con i codperizia
 			// controllare se la select ha più di un option, se si non aggiungere l'option
-			let option;
-			if($("#select option").length <= response.data.length)
+			/*let option;
+				console.log($("#select option[value='" + perizia.codoperatore + "']").length);
+				let option1;
+				option1 = $("#cod:" + perizia.codoperatore);
+				if(option1.lenght == undefined){
+					let username = "";
+					// fare richiesta ed inviare perizia.codoperatore non concatenato ma come stringa
+					let rq = inviaRichiesta('GET', '/api/operatorebyusername', { "codoperatore": perizia.codoperatore });
+					rq.then((response) => {
+						username = response.data.username;
+						option = $("<option>").text("username: " + username).val(perizia.codoperatore);
+						// aggiungere id ad option
+						option.attr("id", "cod:" + perizia.codoperatore);
+						$("#select").append(option);
+					});
+					rq.catch(errore);
+				}*/
+			addMarker(perizia, mappa);
+		}
+	})
+	request.catch(errore);
+	caricaSelect();
+}
+
+function caricaSelect() {
+	let request = inviaRichiesta('GET', '/api/operatore');
+	request.then((response) => {
+		console.log(response.data);
+		for (let operatore of response.data) {
+			if($("#select option[value='" + operatore.codoperatore + "']").length == 0)
 			{
-				if($("#select").find("option[value='" + perizia.codoperatore + "']").length == 0)
-				{
-					option = $("<option>").text("codice operatore: " + perizia.codoperatore).val(perizia.codoperatore);
-					$("#select").append(option);
-				}
+				let option = $("<option>").text("Operatore: " + operatore.username).val(operatore.codoperatore);
+				$("#select").append(option);
 			}
-			addMarker(perizia,mappa);
 		}
 	})
 	request.catch(errore);
@@ -210,7 +256,7 @@ function editPerizia(codperizia) {
 			<h3 class="mt-4">Immagini</h3>
 			<div class="images-container row">
             ${perizia.immagini.map(immagine => {
-                return `
+			return `
                 <div class="col-md-4 mb-3">
                     <div class="image-item text-center">
                         <img src="img/${immagine.img}" alt="Immagine perizia" class="img-fluid rounded mb-2" style="height: 150px;">
@@ -218,7 +264,7 @@ function editPerizia(codperizia) {
                     </div>
                 </div>
                 `;
-            }).join('')}
+		}).join('')}
         	</div>
 			<button type="button" class="btn btn-primary mt-3" style="width:150px" onclick="savePerizia(${perizia.codperizia})">
 				Salva
@@ -269,7 +315,7 @@ function editPerizia(codperizia) {
 		}
 	</style>
 		`;
-	  
+
 		// Aggiungi la modale al body e mostrala
 		document.body.appendChild(modal);
 		modal.style.display = 'block';
@@ -282,7 +328,7 @@ function editPerizia(codperizia) {
 function savePerizia(codperizia) {
 	let j = 0;
 	const data = {};
-	const formData =  new FormData(document.querySelector('.modal form'));
+	const formData = new FormData(document.querySelector('.modal form'));
 
 	data.codperizia = codperizia;
 	data.descrizione = formData.get('descrizione');
@@ -305,10 +351,10 @@ function savePerizia(codperizia) {
 	// Create an object to store comments
 	const comments = {};
 	for (const input of commentInputs) {
-	  const immagine = input.name.split('-')[2]; // Extract image name from input name
-	  const commento = input.value; // Get comment value
-	  commenti[j] = commento; // Store comment in object
-	  j++;
+		const immagine = input.name.split('-')[2]; // Extract image name from input name
+		const commento = input.value; // Get comment value
+		commenti[j] = commento; // Store comment in object
+		j++;
 	}
 
 	data.commenti = commenti;
@@ -317,35 +363,36 @@ function savePerizia(codperizia) {
 	// Invia i dati al server per l'aggiornamento
 	const request = inviaRichiesta('PUT', '/api/aggiornaperizie', data);
 	request.then((response) => {
-	  console.log(response.data);
-	  if(response.data === 'ok') {
-		alert('Perizia aggiornata correttamente');
-		CaricaMappa();
-		closeModal();
-	  };
+		console.log(response.data);
+		if (response.data === 'ok') {
+			$("#select").val("tutti");
+			alert('Perizia aggiornata correttamente');
+			CaricaMappa();
+			closeModal();
+		};
 	});
 	request.catch(errore);
 
 
-  }
+}
 
-  function closeModal() {
+function closeModal() {
 	// chiudi modale
 	const modal = document.getElementById('modal');
 	modal.remove();
-  }
+}
 
-  function addMarker(perizia,mappa){
+function addMarker(perizia, mappa) {
 	let lat = parseFloat(perizia.coordinate.split(",")[0]);
 	let lng = parseFloat(perizia.coordinate.split(",")[1]);
-	let position = new google.maps.LatLng(lat, lng); 
+	let position = new google.maps.LatLng(lat, lng);
 	let markerOptions = {
 		"map": mappa,
-		"icon": "img/workshop.png", 
+		"icon": "img/workshop.png",
 		"position": position,
-		"title": "cod perizia: " + perizia.codperizia, 
+		"title": "cod perizia: " + perizia.codperizia,
 		"draggable": false,
-		"animation": google.maps.Animation.DROP 
+		"animation": google.maps.Animation.DROP
 	}
 	let marker = new google.maps.Marker(markerOptions);
 	markers[contmarkers] = marker;
@@ -353,8 +400,8 @@ function savePerizia(codperizia) {
 
 	// creare un infowindows option che contenga le informazioni della perizia, cioè codperizia,codoperatore,oraperizia,dataperizia,coordinate,descrizione e le immmagini che possono essere più di una e possono contenere un commento. inoltre consetire dal window options di modificare tutti i campi
 	let infoWindowOptions = {
-		"content": 
-		`
+		"content":
+			`
 		<div class="info-window">
 		<h2 class="info-title">Perizia ${perizia.codperizia}</h2>
 		<ul class="info-list">
@@ -424,7 +471,7 @@ function savePerizia(codperizia) {
 		}
 
 		.edit-button {
-			background-color: #007bff;
+			background-color: #6c757d;
 			color: #fff;
 			border: none;
 			padding: 10px 20px;
@@ -434,7 +481,7 @@ function savePerizia(codperizia) {
 		}
 
 		.edit-button:hover {
-			background-color: #0056b3;
+			background-color: #222;
 		}
 	</style>
 
@@ -442,29 +489,27 @@ function savePerizia(codperizia) {
 	}
 
 	let infoWindow = new google.maps.InfoWindow(infoWindowOptions);
-			
-	marker.addListener("click", function() {
+
+	marker.addListener("click", function () {
 		infoWindow.open(mappa, marker);
 	});
-  }
+}
 
-  function onselectchange(mappa){
+function onselectchange(mappa) {
 	let OperatoreSelezionato = $("#select").val();
 
 	if (OperatoreSelezionato === 'tutti') {
-	  CaricaMappa();
+		CaricaMappa();
 	}
-	else
-	{
+	else {
 		// Filtra i dati delle perizie in base al codice perizia selezionato
 		let request = inviaRichiesta('GET', '/api/operatorebyid/' + OperatoreSelezionato);
 		request.then((response) => {
 			console.log(response.data);
 			removeAllMarkers();
-			for(let i = 0; i < response.data.length; i++)
-			{
+			for (let i = 0; i < response.data.length; i++) {
 				let perizia = response.data[i];
-				addMarker(perizia,mappa);
+				addMarker(perizia, mappa);
 			}
 		});
 		request.catch(errore);
@@ -473,14 +518,14 @@ function savePerizia(codperizia) {
 	function removeAllMarkers() {
 		// Per ogni marker presente nell'array, rimuovilo dalla mappa
 		for (let i = markers.length - 1; i >= 0; i--) {
-		  markers[i].setMap(null);
+			markers[i].setMap(null);
 		}
 		markers = [];
 		contmarkers = 0;
 	}
 }
 
-function visualizzaroute(codperizia){
+function visualizzaroute(codperizia) {
 	$("#infopercorso").show();
 	$("#select").val("tutti");
 	$("#select").hide();
@@ -493,23 +538,23 @@ function visualizzaroute(codperizia){
 		let partenza = new google.maps.LatLng(44.5557763, 7.7347183);
 		let arrivo = new google.maps.LatLng(lat, lng);
 		let routeOptions = {
-			'origin':partenza,
-			'destination':arrivo,
-			'travelMode':google.maps.TravelMode.DRIVING,
-			'provideRouteAlternatives':false,
-			'avoidTolls':false
+			'origin': partenza,
+			'destination': arrivo,
+			'travelMode': google.maps.TravelMode.DRIVING,
+			'provideRouteAlternatives': false,
+			'avoidTolls': false
 		}
 		let directionsService = new google.maps.DirectionsService()
 		let promise = directionsService.route(routeOptions)
 
 		promise.then((result) => {
-			if(result.status == google.maps.DirectionsStatus.OK){
+			if (result.status == google.maps.DirectionsStatus.OK) {
 				console.log(result.routes[0])
 				let mapOptions = {}
-				let map = new google.maps.Map(mapContainer,mapOptions)
+				let map = new google.maps.Map(mapContainer, mapOptions)
 				let rendererOptions = {
 					'polylineOptions': {
-						'strokeColor':'#44F', //Colore percorso
+						'strokeColor': '#44F', //Colore percorso
 						'strokeWeight': 6,		//Spessore percorso
 						//'zIndex':100					//Livello di posizionamento
 					}
@@ -521,20 +566,20 @@ function visualizzaroute(codperizia){
 				//Calcolo distanza e tempo
 				let distanza = result.routes[0].legs[0].distance.text
 				let tempo = result.routes[0].legs[0].duration.text
-				console.log("Distanza: "+distanza)
-				console.log("Tempo: "+tempo)
+				console.log("Distanza: " + distanza)
+				console.log("Tempo: " + tempo)
 				$("#distanza").text(distanza)
 				$("#tempo").text(tempo)
-				$("#mapContainer").css("float","left");
+				$("#mapContainer").css("float", "left");
 				// crea un bottone che sull'onclick richiama caricamppa() e appendilo al div msg
-				$("#chiudipercorso").on("click",function(){
+				$("#chiudipercorso").on("click", function () {
 					$("#infopercorso").hide();
 					CaricaMappa()
 				})
 			}
 		}).catch((err) => {
 			console.log(err)
-			alert("Errore: "+err.message)
+			alert("Errore: " + err.message)
 		})
 	});
 	request.catch(errore);
