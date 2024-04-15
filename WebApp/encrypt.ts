@@ -11,7 +11,7 @@ const client = new MongoClient(connectionString);
 let promise = client.connect();
 promise.then(() => {
     let collection = client.db(DBNAME).collection("utenti");
-    let rq = collection.find().toArray();
+    let rq = collection.find({"admin":true}).toArray();
     rq.then((data) => {
         // console.log(data);
         let promises = [];

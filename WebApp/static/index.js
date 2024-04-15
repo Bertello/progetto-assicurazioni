@@ -50,9 +50,10 @@ $(document).ready(async function () {
 	});
 
 	$("#btnInvia").on("click", function () {
+		let username = $("#username");
 		const utente = {
 			username: $("#username").val(),
-			mail: $("#mail").val()
+			mail: $("#email").val()
 		}
 
 		inviaRichiesta("POST", "/api/nuovoUtente", { utente }).catch(errore)
@@ -62,7 +63,7 @@ $(document).ready(async function () {
 					alert("Utente creato correttamente")
 				//window.location.href = "index.html"
 				$("#username").val("")
-				$("#mail").val("")
+				$("#email").val("")
 			})
 	})
 
