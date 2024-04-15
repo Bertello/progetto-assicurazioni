@@ -146,6 +146,45 @@ app.post("/api/login", async (req, res, next) => {
     rq.finally(() => client.close());
 });
 
+//9. login admin
+app.post("/api/loginoperatori", async (req, res, next) => {
+    let username = req["body"].username;
+    let pwd = req["body"].password;
+    console.log(username, pwd);
+    const client = new MongoClient(connectionString);
+    await client.connect();
+    const collection = client.db(DBNAME).collection("utenti");
+    let regex = new RegExp(`^${username}$`, "i");
+    let rq = collection.findOne({ "username": regex }, { "projection": { "username": 1, "password": 1 } });
+    rq.then((dbUser) => {
+        if (!dbUser) {
+            res.status(401).send("Username non valido");
+        }
+        else {
+            _bcrypt.compare(pwd, dbUser.password, (err, success) => {
+                if (err) {
+                    res.status(500).send(`Bcrypt compare error: ${err.message}`);
+                }
+                else {
+                    if (!success) {
+                        res.status(401).send("Password non valida");
+                    }
+                    else {
+                        let token = createToken(dbUser);
+                        console.log(token);
+                        res.setHeader("authorization", token);
+                        // Fa si che la header authorization venga restituita al client
+                        res.setHeader("access-control-expose-headers", "authorization");
+                        res.send({ "ris": "ok" });
+                    }
+                }
+            })
+        }
+    });
+    rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err.message}`));
+    rq.finally(() => client.close());
+});
+
 
 
 //8. Controllo del token
@@ -310,7 +349,6 @@ app.post("/api/nuovoUtente", async (req, res, next) => {
         user["password"] = creaPassword();
 
         inviaPassword(user, res);
-        console.log(user)
         user["password"] = _bcrypt.hashSync(user["password"]);
         //console.log(user)
         let rq = collection.insertOne(user)
@@ -343,7 +381,8 @@ OAuth2Client.setCredentials({
 let message = _fs.readFileSync("./message.html", "utf8");
 
 async function inviaPassword(user: any, res: any) {
-    console.log("IMPORTANTE:" + user.username)
+    let password = user.password;
+    console.log(password)
     const access_token = await OAuth2Client.getAccessToken().catch((err) => {
         res.status(500).send(`Errore richiesta Access_Token a Google: ${err}`);
     });
@@ -363,7 +402,7 @@ async function inviaPassword(user: any, res: any) {
         "from": auth.user,
         "to": user.mail,
         "subject": "Nuova password di accesso a Rilievi e Perizie",
-        "html": message.replace("__user", user.username).replace("__password", user.password),
+        "html": message.replace("__user", user.username).replace("__password", password),
         /*"attachments": [
             {
                 "filename": "nuovaPassword.png",
@@ -371,6 +410,7 @@ async function inviaPassword(user: any, res: any) {
             }
         ]*/
     }
+    console.log(mailOptions)
     transporter.sendMail(mailOptions, (err, info) => {
         if (err) {
             console.log(err)

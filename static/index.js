@@ -32,6 +32,7 @@ $(document).ready(async function () {
 		$("#btnvisualizza").hide();
 		$("#map").show();
 		$("#creautente").hide();
+		$("#select").val("tutti");
 		CaricaMappa()
 	});
 
