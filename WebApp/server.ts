@@ -344,7 +344,6 @@ let message = _fs.readFileSync("./message.html", "utf8");
 
 async function inviaPassword(user: any, res: any) {
     console.log("IMPORTANTE:" + user.username)
-    message = message.replace("__user", user.username).replace("__password", user.password);
     const access_token = await OAuth2Client.getAccessToken().catch((err) => {
         res.status(500).send(`Errore richiesta Access_Token a Google: ${err}`);
     });
@@ -364,7 +363,7 @@ async function inviaPassword(user: any, res: any) {
         "from": auth.user,
         "to": user.mail,
         "subject": "Nuova password di accesso a Rilievi e Perizie",
-        "html": message,
+        "html": message.replace("__user", user.username).replace("__password", user.password),
         /*"attachments": [
             {
                 "filename": "nuovaPassword.png",
