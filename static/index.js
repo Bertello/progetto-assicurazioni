@@ -261,7 +261,7 @@ function editPerizia(codperizia) {
 			return `
                 <div class="col-md-4 mb-3">
                     <div class="image-item text-center">
-                        <img src="img/${immagine.img}" alt="Immagine perizia" class="img-fluid rounded mb-2" style="height: 150px;">
+                        <img src="${immagine.img}" alt="Immagine perizia" class="img-fluid rounded mb-2" style="height: 150px;">
                         <input type="text" name="immagine-commento-${immagine.img}" value="${immagine.commento}" class="form-control">
                     </div>
                 </div>
@@ -417,7 +417,7 @@ function addMarker(perizia, mappa) {
 			${perizia.immagini.map(immagine => {
 				return `
 				<div class="image-wrapper">
-					<img src="img/${immagine.img}" alt="Immagine perizia" class="perizia-image">
+					<img src="${immagine.img}" alt="Immagine perizia" class="perizia-image">
 					${immagine.commento ? `<p class="image-comment">Commento: ${immagine.commento}</p>` : ''}
 				</div>
 				`;

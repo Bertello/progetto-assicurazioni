@@ -146,7 +146,7 @@ app.post("/api/login", async (req, res, next) => {
     rq.finally(() => client.close());
 });
 
-//9. login admin
+//9. login operatori
 app.post("/api/loginoperatori", async (req, res, next) => {
     let username = req["body"].username;
     let pwd = req["body"].password;
@@ -313,9 +313,94 @@ app.get("/api/operatore", (req, res, next) => {
     });
 });
 
+app.get("/api/getcodoperatore", (req, res, next) => {
+    let username = req["query"].username;
+    console.log(username)
+    const client = new MongoClient(connectionString);
+    client.connect().then(() => {
+        const collection = client.db(DBNAME).collection("utenti");
+        let rq = collection.findOne({"username":username, "admin":false}, { "projection": { "codoperatore": 1 } });
+        rq.then((data) => {
+            res.send(data);
+            console.log(data);
+        });
+        rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err.message}`));
+        rq.finally(() => client.close());
+    });
+});
 
 
+app.get("/api/getperiziebycodoperatore", (req, res, next) => {
+    let codoperatore = req["query"].codoperatore;
+    console.log(codoperatore)
+    const client = new MongoClient(connectionString);
+    client.connect().then(() => {
+        const collection = client.db(DBNAME).collection("perizie");
+        let rq = collection.find({ "codoperatore": parseInt(codoperatore) }).toArray();
+        rq.then((data) => {
+            res.send(data);
+            console.log(data);
+        });
+        rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err.message}`));
+        rq.finally(() => client.close());
+    });
+});
 
+app.post("/api/aggiungiperizia", async (req, res, next) => {
+    let perizia = req["body"];
+    console.log("IMPORTNATE!: " + perizia);
+    perizia.immagini = [];
+
+    const client = new MongoClient(connectionString);
+    await client.connect();
+    const collection = client.db(DBNAME).collection("perizie");
+    let rq = collection.insertOne(perizia);
+    rq.then((data) => {
+        res.send("ok");
+    });
+    rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err.message}`));
+    rq.finally(() => client.close());
+    
+});
+
+app.post("/api/salvaPeriziaOnCloudinary", async (req, res, next) => {
+    let username = req["payload"].username;
+    console.log(username);
+    let img = req["body"].img;
+    let codperizia = req["body"].codperizia;
+    console.log(codperizia);
+    _cloudinary.v2.uploader.upload(img.img, { "folder": "RilieviPerizie" })
+        .catch((err) => {
+            res.status(500).send(`Errore cloudinary: ${err}`);
+        })
+        .then(async function (response: UploadApiResponse) {
+            delete img["img"];
+            // IMPORTANTE FARE = {}
+            img["img"] = response.secure_url;
+            console.log(img);
+            const client = new MongoClient(connectionString);
+            await client.connect();
+            let collection = client.db(DBNAME).collection("perizie");
+            let rq = collection.updateOne({"codperizia":codperizia }, { $push: { "immagini": img } });
+            rq.then((data) => res.send(data));
+            rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err}`));
+            rq.finally(() => client.close());
+        });
+});
+
+app.get("/api/getnumeroperizie", async (req, res, next) => {
+    const client = new MongoClient(connectionString);
+    client.connect().then(() => {
+        const collection = client.db(DBNAME).collection("perizie");
+        let rq = collection.countDocuments();
+        rq.then((data) => {
+            console.log("IMPORTANTE: " + data);
+            res.send({num : data});
+        });
+        rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err.message}`));
+        rq.finally(() => client.close());
+    });
+});
 
 
 
