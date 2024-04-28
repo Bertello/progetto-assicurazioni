@@ -12,7 +12,6 @@ import _axios from "axios";
 import _nodemailer from "nodemailer";
 import _bcrypt from "bcryptjs";
 import _jwt from "jsonwebtoken";
-import { google } from 'googleapis';
 
 // Lettura delle password e parametri fondamentali
 _dotenv.config({ "path": ".env" });
