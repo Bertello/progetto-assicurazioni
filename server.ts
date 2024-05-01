@@ -12,6 +12,7 @@ import _axios from "axios";
 import _nodemailer from "nodemailer";
 import _bcrypt from "bcryptjs";
 import _jwt from "jsonwebtoken";
+//import { google } from 'googleapis';
 
 // Lettura delle password e parametri fondamentali
 _dotenv.config({ "path": ".env" });
@@ -404,7 +405,7 @@ app.get("/api/getnumeroperizie", async (req, res, next) => {
 
 
 
-/* CREA UTENTE E INVIO MAIL*/
+/* CREA UTENTE E INVIO MAIL
 app.post("/api/nuovoUtente", async (req, res, next) => {
     const user = req["body"]["utente"];
 
@@ -487,12 +488,12 @@ async function inviaPassword(user: any, res: any) {
         "to": user.mail,
         "subject": "Nuova password di accesso a Rilievi e Perizie",
         "html": message.replace("__user", user.username).replace("__password", password),
-        /*"attachments": [
-            {
-                "filename": "nuovaPassword.png",
-                "path": "./qrCode.png"
-            }
-        ]*/
+        //"attachments": [
+           //{
+               // "filename": "nuovaPassword.png",
+                //"path": "./qrCode.png"
+           // }
+        //]
     }
     console.log(mailOptions)
     transporter.sendMail(mailOptions, (err, info) => {
@@ -505,7 +506,7 @@ async function inviaPassword(user: any, res: any) {
             res.send("Email inviata correttamente!");
         }
     });
-}
+}*/
 
 
 // La .send() mette status 200 e fa il parsing. In caso di codice diverso da 200 la .send() non fa il parsing
