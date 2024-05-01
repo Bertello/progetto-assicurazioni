@@ -424,9 +424,17 @@ app.post("/api/nuovoUtente", async (req, res, next) => {
         const userCount = await collection.countDocuments();
         let codOperatore = userCount - 1;
 
-        const isCodOperatoreEsistente = await collection.findOne({ "codoperatore": codOperatore });
+        /*const isCodOperatoreEsistente = await collection.findOne({ "codoperatore": codOperatore });
         if (isCodOperatoreEsistente)
-            codOperatore++;
+            codOperatore++;*/
+        let cod: boolean = false;
+        while (!cod) {
+            const isCodOperatoreEsistente = await collection.findOne({ "codoperatore": codOperatore });
+            if (isCodOperatoreEsistente)
+                codOperatore++;
+            else
+                cod = true;
+        }
 
         user["codoperatore"] = codOperatore;
         user["admin"] = false;
