@@ -405,7 +405,7 @@ app.get("/api/getnumeroperizie", async (req, res, next) => {
 
 
 
-/* CREA UTENTE E INVIO MAIL
+/* CREA UTENTE E INVIO MAIL*/
 app.post("/api/nuovoUtente", async (req, res, next) => {
     const user = req["body"]["utente"];
 
@@ -454,7 +454,17 @@ function creaPassword(): string {
     return password;
 }
 
-const o_Auth2 = JSON.parse(process.env.oAuthCredential as any)
+// Configurazione di nodemailer
+const auth = {
+    "user": process.env.gmailUser,
+    "pass": process.env.gmailPassword,
+}
+const transporter = _nodemailer.createTransport({
+    "service": "gmail",
+    "auth": auth
+});
+
+/*const o_Auth2 = JSON.parse(process.env.oAuthCredential as any)
 const OAuth2 = google.auth.OAuth2; // Oggetto OAuth2
 const OAuth2Client = new OAuth2(
     o_Auth2["client_id"],
@@ -462,12 +472,12 @@ const OAuth2Client = new OAuth2(
 );
 OAuth2Client.setCredentials({
     refresh_token: o_Auth2.refresh_token,
-});
+});*/
 let message = _fs.readFileSync("./message.html", "utf8");
 
 async function inviaPassword(user: any, res: any) {
     let password = user.password;
-    console.log(password)
+    /*console.log(password)
     const access_token = await OAuth2Client.getAccessToken().catch((err) => {
         res.status(500).send(`Errore richiesta Access_Token a Google: ${err}`);
     });
@@ -488,12 +498,12 @@ async function inviaPassword(user: any, res: any) {
         "to": user.mail,
         "subject": "Nuova password di accesso a Rilievi e Perizie",
         "html": message.replace("__user", user.username).replace("__password", password),
-        //"attachments": [
-           //{
-               // "filename": "nuovaPassword.png",
-                //"path": "./qrCode.png"
-           // }
-        //]
+        "attachments": [
+           {
+                "filename": "nuovaPassword.png",
+                "path": "./qrCode.png"
+            }
+        ]
     }
     console.log(mailOptions)
     transporter.sendMail(mailOptions, (err, info) => {
@@ -505,8 +515,30 @@ async function inviaPassword(user: any, res: any) {
             console.log("OK")
             res.send("Email inviata correttamente!");
         }
+    });*/
+   
+    let mailOptions = {
+        "from": auth.user,
+        "to": user.mail,
+        "subject":"Nuova password di accesso a Rilievi e Perizie",
+        "html":  message.replace("__user", user.username).replace("__password", password),
+        /*"attachments": [
+            {
+                "filename": "QrCode del sito da cui scaricare l'app.png",
+                "path": "./qrCode.png"
+            }
+        ]*/
+    }
+    transporter.sendMail(mailOptions, (err, info) => {
+        console.log(info);
+        if (err) {
+            res.status(500).send(`Errore invio mail:\n${err.message}`);
+        }
+        else {
+            res.send("Ok");
+        }
     });
-}*/
+}
 
 
 // La .send() mette status 200 e fa il parsing. In caso di codice diverso da 200 la .send() non fa il parsing
