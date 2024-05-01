@@ -34,9 +34,9 @@ const app = _express();
 // app è il router di Express, si occupa di tutta la gestione delle richieste https
 const HTTPS_PORT: number = parseInt(process.env.PORT);
 let paginaErrore;
-const PRIVATE_KEY = _fs.readFileSync("./keys/privateKey.pem", "utf8");
-const CERTIFICATE = _fs.readFileSync("./keys/certificate.crt", "utf8");
-const ENCRYPTION_KEY = _fs.readFileSync("./keys/encryptionKey.txt", "utf8");
+const PRIVATE_KEY = _fs.readFileSync("./privateKey.pem", "utf8");
+const CERTIFICATE = _fs.readFileSync("./certificate.crt", "utf8");
+const ENCRYPTION_KEY = _fs.readFileSync("./encryptionKey.txt", "utf8");
 const CREDENTIALS = { "key": PRIVATE_KEY, "cert": CERTIFICATE };
 
 const http_server = _http.createServer(app);
