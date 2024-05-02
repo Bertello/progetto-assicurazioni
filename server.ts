@@ -211,9 +211,11 @@ app.post("/api/resetpassword", async (req, res, next) => {
         const collection = client.db(DBNAME).collection("utenti");
         let rq = collection.findOne({ "mail": mail }, { "projection": { "mail": 1, "username":1 } });
         rq.then((data) => {
-            let user;
-            user.username = data.username;
-            user.mail = mail;
+            let user = {
+                "username": data.username,
+                "mail": data.mail,
+                "password": ""
+            };
             let password = creaPassword();
             user.password = password;
             inviaPassword(user, res);
