@@ -402,9 +402,9 @@ app.get("/api/getnumeroperizie", async (req, res, next) => {
     });
 });
 
-app.get("/api/trovamail", async (req, res, next) => {
-    console.log("IMPORTANTE: " + req["query"].mail);
-    let mail = req["params"].mail;
+app.post("/api/trovamail", async (req, res, next) => {
+    console.log("IMPORTANTE: " + req["body"].mail);
+    let mail = req["body"].mail;
     console.log(mail);
     const client = new MongoClient(connectionString);
     client.connect().then(() => {
@@ -412,7 +412,6 @@ app.get("/api/trovamail", async (req, res, next) => {
         let rq = collection.findOne({ "mail": mail }, { "projection": { "mail": 1 } });
         rq.then((data) => {
             res.send(data);
-            console.log(data);
         });
         rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err.message}`));
         rq.finally(() => client.close());
