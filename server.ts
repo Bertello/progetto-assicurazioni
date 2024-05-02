@@ -402,6 +402,58 @@ app.get("/api/getnumeroperizie", async (req, res, next) => {
     });
 });
 
+app.post("/api/trovamail", async (req, res, next) => {
+    let mail = req["body"].mail;
+    console.log(mail);
+    const client = new MongoClient(connectionString);
+    client.connect().then(() => {
+        const collection = client.db(DBNAME).collection("utenti");
+        let rq = collection.findOne({ "mail": mail }, { "projection": { "mail": 1 } });
+        rq.then((data) => {
+            res.send(data);
+            console.log(data);
+        });
+        rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err.message}`));
+        rq.finally(() => client.close());
+    });
+});
+
+app.post("/api/inviacodicemail", async (req, res, next) => {
+    let mail = req["body"].mail;
+    let codice = req["body"].codice;
+    console.log(mail);
+    // Configurazione di nodemailer
+    const auth = {
+        "user": process.env.gmailUser,
+        "pass": process.env.gmailPassword,
+    }
+    const transporter = _nodemailer.createTransport({
+        "service": "gmail",
+        "auth": auth
+    });
+    let message1 = _fs.readFileSync("./message1.html", "utf8");
+    let mailOptions = {
+        "from": auth.user,
+        "to": mail,
+        "subject":"Nuova password di accesso a Rilievi e Perizie",
+        "html":  message1.replace("__codice", codice),
+        /*"attachments": [
+            {
+                "filename": "QrCode del sito da cui scaricare l'app.png",
+                "path": "./qrCode.png"
+            }
+        ]*/
+    }
+    transporter.sendMail(mailOptions, (err, info) => {
+        console.log(info);
+        if (err) {
+            res.status(500).send(`Errore invio mail:\n${err.message}`);
+        }
+        else {
+            res.send("Ok");
+        }
+    });
+});
 
 
 
@@ -455,7 +507,7 @@ app.post("/api/nuovoUtente", async (req, res, next) => {
 function creaPassword(): string {
     const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_';
     let password = '';
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 6; i++) {
         const randomIndex = Math.floor(Math.random() * charset.length);
         password += charset[randomIndex];
     }
