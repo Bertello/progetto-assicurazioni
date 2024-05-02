@@ -402,7 +402,7 @@ app.get("/api/getnumeroperizie", async (req, res, next) => {
     });
 });
 
-app.post("/api/trovamail", async (req, res, next) => {
+app.get("/api/trovamail", async (req, res, next) => {
     let mail = req["body"].mail;
     console.log(mail);
     const client = new MongoClient(connectionString);
