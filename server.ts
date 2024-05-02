@@ -163,6 +163,45 @@ app.post("/api/trovamail", async (req, res, next) => {
     });
 });
 
+// invia codice mail
+app.post("/api/inviacodicemail", async (req, res, next) => {
+    let mail = req["body"].mail;
+    let codice = req["body"].codice;
+    console.log(mail);
+    console.log(codice);
+    // Configurazione di nodemailer
+    const auth = {
+        "user": process.env.gmailUser,
+        "pass": process.env.gmailPassword,
+    }
+    const transporter = _nodemailer.createTransport({
+        "service": "gmail",
+        "auth": auth
+    });
+    let message1 = _fs.readFileSync("./message1.html", "utf8");
+    let mailOptions = {
+        "from": auth.user,
+        "to": mail,
+        "subject":"Codice per recupero password Rilievi e Perizie",
+        "html":  message1.replace("__codice", codice),
+        /*"attachments": [
+            {
+                "filename": "QrCode del sito da cui scaricare l'app.png",
+                "path": "./qrCode.png"
+            }
+        ]*/
+    }
+    transporter.sendMail(mailOptions, (err, info) => {
+        console.log(info);
+        if (err) {
+            res.status(500).send(`Errore invio mail:\n${err.message}`);
+        }
+        else {
+            res.send("Ok");
+        }
+    });
+});
+
 //9. login operatori
 app.post("/api/loginoperatori", async (req, res, next) => {
     let username = req["body"].username;
@@ -421,43 +460,7 @@ app.get("/api/getnumeroperizie", async (req, res, next) => {
 
 
 
-app.post("/api/inviacodicemail", async (req, res, next) => {
-    let mail = req["body"].mail;
-    let codice = req["body"].codice;
-    console.log(mail);
-    console.log(codice);
-    // Configurazione di nodemailer
-    const auth = {
-        "user": process.env.gmailUser,
-        "pass": process.env.gmailPassword,
-    }
-    const transporter = _nodemailer.createTransport({
-        "service": "gmail",
-        "auth": auth
-    });
-    let message1 = _fs.readFileSync("./message1.html", "utf8");
-    let mailOptions = {
-        "from": auth.user,
-        "to": mail,
-        "subject":"Codice per recupero password Rilievi e Perizie",
-        "html":  message1.replace("__codice", codice),
-        /*"attachments": [
-            {
-                "filename": "QrCode del sito da cui scaricare l'app.png",
-                "path": "./qrCode.png"
-            }
-        ]*/
-    }
-    transporter.sendMail(mailOptions, (err, info) => {
-        console.log(info);
-        if (err) {
-            res.status(500).send(`Errore invio mail:\n${err.message}`);
-        }
-        else {
-            res.send("Ok");
-        }
-    });
-});
+
 
 
 
