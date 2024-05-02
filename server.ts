@@ -422,6 +422,7 @@ app.post("/api/inviacodicemail", async (req, res, next) => {
     let mail = req["body"].mail;
     let codice = req["body"].codice;
     console.log(mail);
+    console.log(codice);
     // Configurazione di nodemailer
     const auth = {
         "user": process.env.gmailUser,
@@ -435,7 +436,7 @@ app.post("/api/inviacodicemail", async (req, res, next) => {
     let mailOptions = {
         "from": auth.user,
         "to": mail,
-        "subject":"Nuova password di accesso a Rilievi e Perizie",
+        "subject":"Codice per recupero password Rilievi e Perizie",
         "html":  message1.replace("__codice", codice),
         /*"attachments": [
             {
