@@ -403,7 +403,7 @@ app.get("/api/getnumeroperizie", async (req, res, next) => {
 });
 
 app.get("/api/trovamail", async (req, res, next) => {
-    let mail = req["body"].mail;
+    let mail = req["query"].mail;
     console.log(mail);
     const client = new MongoClient(connectionString);
     client.connect().then(() => {
