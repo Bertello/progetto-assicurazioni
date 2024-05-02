@@ -202,6 +202,33 @@ app.post("/api/inviacodicemail", async (req, res, next) => {
     });
 });
 
+// reset password
+app.post("/api/resetpassword", async (req, res, next) => {
+    let mail = req["body"].mail;
+    console.log(mail);
+    const client = new MongoClient(connectionString);
+    client.connect().then(() => {
+        const collection = client.db(DBNAME).collection("utenti");
+        let rq = collection.findOne({ "mail": mail }, { "projection": { "mail": 1, "username":1 } });
+        rq.then((data) => {
+            let user;
+            user.username = data.username;
+            user.mail = mail;
+            let password = creaPassword();
+            user.password = password;
+            inviaPassword(user, res);
+            user["password"] = _bcrypt.hashSync(user["password"]);
+            let rq = collection.updateOne({ "mail": mail }, { $set: { "password": user.password } });
+            rq.then((data) => {
+                res.send("OK");
+            });
+            rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err.message}`));
+            rq.finally(() => client.close());
+        });
+        rq.catch((err) => res.status(500).send(`Errore esecuzione query: ${err.message}`));
+    });
+});
+
 //9. login operatori
 app.post("/api/loginoperatori", async (req, res, next) => {
     let username = req["body"].username;
