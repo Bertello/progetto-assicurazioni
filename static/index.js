@@ -245,7 +245,7 @@ function editPerizia(codperizia) {
 			</div>
 			<div class="form-group">
 				<label for="dataperizia">Data perizia:</label>
-				<input type="date" id="dataperizia" name="dataperizia" value="${perizia.dataperizia}" class="form-control" disabled>
+				<input type="text" id="dataperizia" name="dataperizia" value="${perizia.dataperizia}" class="form-control" disabled>
 			</div>
 			<div class="form-group">
 				<label for="coordinate">Coordinate:</label>
